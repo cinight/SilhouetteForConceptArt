@@ -6,8 +6,9 @@ public class ShapeGen : MonoBehaviour
 {
     public GameObject quad;
     public float guiScale = 1f;
-    [Range(3,20)] public int count = 3;
-    [Range(0f,5f)] public float randomPosition = 1.0f;
+    [Range(3,100)] public int count = 3;
+    [Range(0f,0.1f)] public float randomPosition = 0.05f;
+    public bool greyScale = false;
 
     private MeshRenderer[] renderers;
     private Object[] texture_shapes;
@@ -32,9 +33,15 @@ public class ShapeGen : MonoBehaviour
             //MATERIAL
 
             //Random grey color
-            float grey = Random.Range(0.0f, 1.0f);
-            //props.SetColor("_BaseColor", new Color(grey, grey, grey));
-            props.SetColor("_BaseColor", Color.black);
+            if(greyScale)
+            {
+                float grey = Random.Range(0.0f, 0.3f);
+                props.SetColor("_BaseColor", new Color(grey, grey, grey));
+            }
+            else
+            {
+                props.SetColor("_BaseColor", Color.black);
+            }
 
             //Random texture
             int tid = Random.Range(0,texture_shapes.Length-1);
@@ -50,14 +57,14 @@ public class ShapeGen : MonoBehaviour
             // TRANSFORM
 
             //Random position
-            renderers[i].transform.localPosition = RandomV3(Vector3.one*randomPosition*-1.0f, Vector3.one*randomPosition);
+            renderers[i].transform.localPosition = RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
 
             //Random rotation
             Vector3 rot = RandomV3(Vector3.zero, Vector3.one*360.0f);
             renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
 
             //Random scale
-            renderers[i].transform.localScale = RandomV3(Vector3.one*0.5f, Vector3.one*3.5f);
+            renderers[i].transform.localScale = RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
         }
     }
 
@@ -70,24 +77,39 @@ public class ShapeGen : MonoBehaviour
         return v;
     }
 
+    public void ExportPNG()
+    {
+        string fileName = "SilhouetteForConceptArt_"+System.DateTime.Now.ToString("yyyyMMdd_hh-mm-ss")+".PNG";
+        ScreenCapture.CaptureScreenshot(fileName);
+    }
+
+    public void ShowInExplorer()
+    {
+        string folderPath = Application.dataPath;
+        folderPath = folderPath.Replace(@"/", @"\");   // explorer doesn't like front slashes
+        System.Diagnostics.Process.Start("explorer.exe", "/select,"+folderPath);
+    }
+
     void OnGUI()
     {
         GUI.skin.label.fontSize = Mathf.RoundToInt ( 16 * guiScale );
         GUI.color = Color.white;
-        float w = 410 * guiScale;
-        float h = 90 * guiScale;
-        GUILayout.BeginArea(new Rect(Screen.width - w -5, Screen.height - h -5, w, h), GUI.skin.box);
+        float w = 350 * guiScale;
+        float h = 200 * guiScale;
+        GUILayout.BeginArea(new Rect(5, 5, w, h), GUI.skin.box);
 
-        GUILayout.BeginHorizontal();
         GUIStyle customButton = new GUIStyle("button");
         customButton.fontSize = GUI.skin.label.fontSize;
-        if(GUILayout.Button("\n Generate \n",customButton,GUILayout.Width(200 * guiScale), GUILayout.Height(50 * guiScale))) GenNewShape();
-        //if(GUILayout.Button("\n Export PNG \n",customButton,GUILayout.Width(200 * guiScale), GUILayout.Height(50 * guiScale))) NextScene();
+        if(GUILayout.Button("\n Generate \n",customButton,GUILayout.Height(50 * guiScale))) GenNewShape();
+        GUILayout.BeginHorizontal();
+            if(GUILayout.Button("\n Export PNG \n",customButton, GUILayout.Height(50 * guiScale))) ExportPNG();
+            if(GUILayout.Button("\n Show In Explorer \n",customButton, GUILayout.Height(50 * guiScale))) ShowInExplorer();
         GUILayout.EndHorizontal();
-
-        //int currentpage = SceneManager.GetActiveScene().buildIndex;
-        //int totalpages = SceneManager.sceneCountInBuildSettings-1;
-        //GUILayout.Label( currentpage + " / " + totalpages + " " + SceneManager.GetActiveScene().name );
+        GUILayout.BeginHorizontal();
+            GUILayout.Label( "Scattering" );
+            randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f);
+        GUILayout.EndHorizontal();
+            greyScale = GUILayout.Toggle(greyScale, "Greyscale");
 
         GUILayout.EndArea();
     }
