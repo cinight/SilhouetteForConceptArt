@@ -1,5 +1,7 @@
 # SilhouetteForConceptArt
 
+WebGL: https://github.com/cinight/SilhouetteForConceptArt/tree/master/WebGLBuild
+
 Unity version : 2019.4+
 
 ## ShapeGen
