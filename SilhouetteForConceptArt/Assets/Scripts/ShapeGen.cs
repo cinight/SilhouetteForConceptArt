@@ -6,18 +6,19 @@ public class ShapeGen : MonoBehaviour
 {
     public GameObject quad;
     public float guiScale = 1f;
-    [Range(3,100)] public int count = 3;
-    [Range(0f,0.1f)] public float randomPosition = 0.05f;
+    public int count = 3;
+    public float randomPosition = 0.05f;
     public bool greyScale = false;
 
+    private int countmax = 100;
     private MeshRenderer[] renderers;
     private Object[] texture_shapes;
 
     void Start()
     {
         texture_shapes = Resources.LoadAll("Textures/Shapes", typeof(Texture2D));
-        renderers = new MeshRenderer[count];
-        for(int i=0; i<count; i++)
+        renderers = new MeshRenderer[countmax];
+        for(int i=0; i<countmax; i++)
         {
             GameObject newObj = Instantiate(quad);
             renderers[i] = newObj.GetComponent<MeshRenderer>();
@@ -28,43 +29,53 @@ public class ShapeGen : MonoBehaviour
     public void GenNewShape()
     {
         MaterialPropertyBlock props = new MaterialPropertyBlock();
-        for(int i=0; i<count; i++)
+        for(int i=0; i<countmax; i++)
         {
-            //MATERIAL
-
-            //Random grey color
-            if(greyScale)
+            if(i<count)
             {
-                float grey = Random.Range(0.0f, 0.3f);
-                props.SetColor("_BaseColor", new Color(grey, grey, grey));
+                //MATERIAL
+
+                //Random grey color
+                if(greyScale)
+                {
+                    float grey = Random.Range(0.0f, 0.3f);
+                    props.SetColor("_BaseColor", new Color(grey, grey, grey));
+                }
+                else
+                {
+                    props.SetColor("_BaseColor", Color.black);
+                }
+
+                //Random texture
+                int tid = Random.Range(0,texture_shapes.Length-1);
+                props.SetTexture("_BaseMap",(Texture2D)texture_shapes[tid]);
+
+                //Random cutoff
+                float cutoff = Random.Range(0.1f, 1.0f);
+                props.SetFloat("_Cutoff",cutoff);
+
+                //Assign to MaterialPropertyBlock
+                renderers[i].SetPropertyBlock(props);
+                            
+                // TRANSFORM
+
+                //Random position
+                renderers[i].transform.localPosition = RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
+
+                //Random rotation
+                Vector3 rot = RandomV3(Vector3.zero, Vector3.one*360.0f);
+                renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
+
+                //Random scale
+                renderers[i].transform.localScale = RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
+
+                //Make sure Renderer is enabled
+                renderers[i].enabled = true;
             }
             else
             {
-                props.SetColor("_BaseColor", Color.black);
+                renderers[i].enabled = false;
             }
-
-            //Random texture
-            int tid = Random.Range(0,texture_shapes.Length-1);
-            props.SetTexture("_BaseMap",(Texture2D)texture_shapes[tid]);
-
-            //Random cutoff
-            float cutoff = Random.Range(0.1f, 1.0f);
-            props.SetFloat("_Cutoff",cutoff);
-
-            //Assign to MaterialPropertyBlock
-            renderers[i].SetPropertyBlock(props);
-                        
-            // TRANSFORM
-
-            //Random position
-            renderers[i].transform.localPosition = RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
-
-            //Random rotation
-            Vector3 rot = RandomV3(Vector3.zero, Vector3.one*360.0f);
-            renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
-
-            //Random scale
-            renderers[i].transform.localScale = RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
         }
     }
 
@@ -92,25 +103,38 @@ public class ShapeGen : MonoBehaviour
 
     void OnGUI()
     {
-        GUI.skin.label.fontSize = Mathf.RoundToInt ( 16 * guiScale );
-        GUI.color = Color.white;
-        float w = 350 * guiScale;
+        //The box
+        float w = 400 * guiScale;
         float h = 200 * guiScale;
         GUILayout.BeginArea(new Rect(5, 5, w, h), GUI.skin.box);
 
-        GUIStyle customButton = new GUIStyle("button");
-        customButton.fontSize = GUI.skin.label.fontSize;
-        if(GUILayout.Button("\n Generate \n",customButton,GUILayout.Height(50 * guiScale))) GenNewShape();
+        //Styles
+        GUI.skin.label.fontSize = Mathf.RoundToInt ( 16 * guiScale );
+        GUI.skin.button.fontSize = Mathf.RoundToInt ( 16 * guiScale );
+        GUI.skin.toggle.fontSize = Mathf.RoundToInt ( 16 * guiScale );
+        GUI.skin.horizontalSlider.fontSize = Mathf.RoundToInt ( 16 * guiScale );
+        GUI.color = Color.white;
+
+        //Settings
+        if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
         GUILayout.BeginHorizontal();
-            if(GUILayout.Button("\n Export PNG \n",customButton, GUILayout.Height(50 * guiScale))) ExportPNG();
-            if(GUILayout.Button("\n Show In Explorer \n",customButton, GUILayout.Height(50 * guiScale))) ShowInExplorer();
+            if(GUILayout.Button("\n Export PNG \n", GUILayout.Height(50 * guiScale))) ExportPNG();
+            if(GUILayout.Button("\n Show In Explorer \n", GUILayout.Height(50 * guiScale))) ShowInExplorer();
+        GUILayout.EndHorizontal();
+        GUILayout.BeginHorizontal();
+            GUILayout.Label( "Count     " );
+            count = Mathf.RoundToInt(GUILayout.HorizontalSlider(count, 3, countmax, GUILayout.Width(250 * guiScale)));
+            GUILayout.Label( ""+count );
         GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
             GUILayout.Label( "Scattering" );
-            randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f);
+            randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f, GUILayout.Width(250 * guiScale));
+            GUILayout.Label( ""+randomPosition.ToString("F3") );
         GUILayout.EndHorizontal();
             greyScale = GUILayout.Toggle(greyScale, "Greyscale");
 
+
+        // End of box
         GUILayout.EndArea();
     }
 }

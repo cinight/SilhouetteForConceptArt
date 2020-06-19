@@ -269,6 +269,7 @@ MonoBehaviour:
   guiScale: 1
   count: 100
   randomPosition: 0.0417
+  greyScale: 0
 --- !u!4 &2077606396
 Transform:
   m_ObjectHideFlags: 0
