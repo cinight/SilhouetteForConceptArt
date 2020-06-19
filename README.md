@@ -1,6 +1,6 @@
 # SilhouetteForConceptArt
 
-WebGL: https://github.com/cinight/SilhouetteForConceptArt/tree/master/WebGLBuild
+WebGL: https://cinight.github.io/SilhouetteForConceptArt/WebGLBuild/
 
 Unity version : 2019.4+
 
