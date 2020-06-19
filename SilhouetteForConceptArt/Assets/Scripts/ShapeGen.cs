@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class ShapeGen : MonoBehaviour
@@ -88,24 +89,31 @@ public class ShapeGen : MonoBehaviour
         return v;
     }
 
-    public void ExportPNG()
-    {
-        string fileName = "SilhouetteForConceptArt_"+System.DateTime.Now.ToString("yyyyMMdd_hh-mm-ss")+".PNG";
-        ScreenCapture.CaptureScreenshot(fileName);
-    }
+    [DllImport("__Internal")]
+    private static extern void openWindow(string url);
 
-    public void ShowInExplorer()
+    public IEnumerator ExportPNG()
     {
-        string folderPath = Application.dataPath;
-        folderPath = folderPath.Replace(@"/", @"\");   // explorer doesn't like front slashes
-        System.Diagnostics.Process.Start("explorer.exe", "/select,"+folderPath);
+        yield return new WaitForEndOfFrame();
+        Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture(1);
+        byte[] textureBytes = texture.EncodeToJPG();
+
+        string fileName = "SilhouetteForConceptArt_"+System.DateTime.Now.ToString("yyyyMMdd_hh-mm-ss")+".JPG";
+        string dataString = "data:image/jpg;base64," + System.Convert.ToBase64String(textureBytes);
+        //ScreenCapture.CaptureScreenshot(fileName);
+
+        #if !UNITY_EDITOR
+        openWindow(dataString);
+        #endif
+
+        Destroy(texture);
     }
 
     void OnGUI()
     {
         //The box
         float w = 400 * guiScale;
-        float h = 200 * guiScale;
+        float h = 160 * guiScale;
         GUILayout.BeginArea(new Rect(5, 5, w, h), GUI.skin.box);
 
         //Styles
@@ -116,11 +124,12 @@ public class ShapeGen : MonoBehaviour
         GUI.color = Color.white;
 
         //Settings
-        if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
         GUILayout.BeginHorizontal();
-            if(GUILayout.Button("\n Export PNG \n", GUILayout.Height(50 * guiScale))) ExportPNG();
-            if(GUILayout.Button("\n Show In Explorer \n", GUILayout.Height(50 * guiScale))) ShowInExplorer();
+            if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
+            if(GUILayout.Button("\n Download \n", GUILayout.Height(50 * guiScale))) StartCoroutine(ExportPNG());
+            //if(GUILayout.Button("\n Show In Explorer \n", GUILayout.Height(50 * guiScale))) ShowInExplorer();
         GUILayout.EndHorizontal();
+        GUILayout.Space(10);
         GUILayout.BeginHorizontal();
             GUILayout.Label( "Count     " );
             count = Mathf.RoundToInt(GUILayout.HorizontalSlider(count, 3, countmax, GUILayout.Width(250 * guiScale)));
@@ -131,7 +140,7 @@ public class ShapeGen : MonoBehaviour
             randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f, GUILayout.Width(250 * guiScale));
             GUILayout.Label( ""+randomPosition.ToString("F3") );
         GUILayout.EndHorizontal();
-            greyScale = GUILayout.Toggle(greyScale, "Greyscale");
+            greyScale = GUILayout.Toggle(greyScale, " Greyscale");
 
 
         // End of box
