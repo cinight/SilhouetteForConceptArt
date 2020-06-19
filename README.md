@@ -4,7 +4,5 @@ Unity version : 2019.4+
 
 ## ShapeGen
 
-![](READMEImages/01.PNG)
-![](READMEImages/02.PNG) \
-![](READMEImages/03.PNG)
-![](READMEImages/04.PNG)
+<img src="READMEImages/01.PNG" width="50%"><img src="READMEImages/02.PNG" width="50%">
+<img src="READMEImages/03.PNG" width="50%"><img src="READMEImages/04.PNG" width="50%">
