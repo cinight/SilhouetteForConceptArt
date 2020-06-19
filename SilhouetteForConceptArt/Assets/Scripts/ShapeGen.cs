@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class ShapeGen : MonoBehaviour
@@ -61,14 +60,14 @@ public class ShapeGen : MonoBehaviour
                 // TRANSFORM
 
                 //Random position
-                renderers[i].transform.localPosition = RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
+                renderers[i].transform.localPosition = CommonTools.RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
 
                 //Random rotation
-                Vector3 rot = RandomV3(Vector3.zero, Vector3.one*360.0f);
+                Vector3 rot = CommonTools.RandomV3(Vector3.zero, Vector3.one*360.0f);
                 renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
 
                 //Random scale
-                renderers[i].transform.localScale = RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
+                renderers[i].transform.localScale = CommonTools.RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
 
                 //Make sure Renderer is enabled
                 renderers[i].enabled = true;
@@ -80,40 +79,13 @@ public class ShapeGen : MonoBehaviour
         }
     }
 
-    private Vector3 RandomV3(Vector3 rmin, Vector3 rmax)
-    {
-        Vector3 v;
-        v.x = Random.Range(rmin.x, rmax.x);
-        v.y = Random.Range(rmin.y, rmax.y);
-        v.z = Random.Range(rmin.z, rmax.z);
-        return v;
-    }
-
-    [DllImport("__Internal")]
-    private static extern void openWindow(string url);
-
-    public IEnumerator ExportPNG()
-    {
-        yield return new WaitForEndOfFrame();
-        Texture2D texture = ScreenCapture.CaptureScreenshotAsTexture(1);
-        byte[] textureBytes = texture.EncodeToJPG();
-
-        string fileName = "SilhouetteForConceptArt_"+System.DateTime.Now.ToString("yyyyMMdd_hh-mm-ss")+".JPG";
-        string dataString = "data:image/jpg;base64," + System.Convert.ToBase64String(textureBytes);
-        //ScreenCapture.CaptureScreenshot(fileName);
-
-        #if !UNITY_EDITOR
-        openWindow(dataString);
-        #endif
-
-        Destroy(texture);
-    }
-
     void OnGUI()
     {
+        if(!CommonTools.renderGUI) return;
+
         //The box
         float w = 400 * guiScale;
-        float h = 160 * guiScale;
+        float h = 200 * guiScale;
         GUILayout.BeginArea(new Rect(5, 5, w, h), GUI.skin.box);
 
         //Styles
@@ -123,13 +95,14 @@ public class ShapeGen : MonoBehaviour
         GUI.skin.horizontalSlider.fontSize = Mathf.RoundToInt ( 16 * guiScale );
         GUI.color = Color.white;
 
+        //Title
+        GUIStyle titleStyle = new GUIStyle("label");
+        titleStyle.fontSize = Mathf.RoundToInt(GUI.skin.label.fontSize*1.2f);
+        titleStyle.fontStyle = FontStyle.Bold;
+        GUILayout.Label( "ShapeGen",titleStyle );
+        GUILayout.Space(20);
+
         //Settings
-        GUILayout.BeginHorizontal();
-            if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
-            if(GUILayout.Button("\n Download \n", GUILayout.Height(50 * guiScale))) StartCoroutine(ExportPNG());
-            //if(GUILayout.Button("\n Show In Explorer \n", GUILayout.Height(50 * guiScale))) ShowInExplorer();
-        GUILayout.EndHorizontal();
-        GUILayout.Space(10);
         GUILayout.BeginHorizontal();
             GUILayout.Label( "Count     " );
             count = Mathf.RoundToInt(GUILayout.HorizontalSlider(count, 3, countmax, GUILayout.Width(250 * guiScale)));
@@ -141,6 +114,8 @@ public class ShapeGen : MonoBehaviour
             GUILayout.Label( ""+randomPosition.ToString("F3") );
         GUILayout.EndHorizontal();
             greyScale = GUILayout.Toggle(greyScale, " Greyscale");
+        GUILayout.Space(10);
+        if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
 
 
         // End of box
