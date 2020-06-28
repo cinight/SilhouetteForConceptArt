@@ -6,12 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Base.unity
+    path: Assets/Common/Base.unity
     guid: f106bf41871788d4ea21d8687a5c83e2
   - enabled: 1
-    path: Assets/Scenes/ShapeGen.unity
+    path: Assets/Generators/ShapeGen/ShapeGen.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Scenes/EnvGen.unity
+    path: Assets/Generators/EnvGen/EnvGen.unity
     guid: e3f658fb8feb94343bcb8f2b8a067f4c
+  - enabled: 1
+    path: Assets/Generators/WingsGen/WingsGen.unity
+    guid: 66b84b0354eb97a41ac1f6b86d694968
   m_configObjects: {}

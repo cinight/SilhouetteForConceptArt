@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShapeGen : MonoBehaviour
+public class EnvGen : MonoBehaviour
 {
     public GameObject quad;
     public float guiScale = 1f;
@@ -16,7 +16,7 @@ public class ShapeGen : MonoBehaviour
 
     void Start()
     {
-        texture_shapes = Resources.LoadAll("Textures/Shapes", typeof(Texture2D));
+        texture_shapes = Resources.LoadAll("ShapeGen", typeof(Texture2D));
         renderers = new MeshRenderer[countmax];
         for(int i=0; i<countmax; i++)
         {
@@ -99,7 +99,7 @@ public class ShapeGen : MonoBehaviour
         GUIStyle titleStyle = new GUIStyle("label");
         titleStyle.fontSize = Mathf.RoundToInt(GUI.skin.label.fontSize*1.2f);
         titleStyle.fontStyle = FontStyle.Bold;
-        GUILayout.Label( "ShapeGen",titleStyle );
+        GUILayout.Label( "EnvGen",titleStyle );
         GUILayout.Space(20);
 
         //Settings
