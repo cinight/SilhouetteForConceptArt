@@ -4,79 +4,97 @@ using UnityEngine;
 
 public class WingsGen : MonoBehaviour
 {
+    public Mirror mirror;
     public GameObject quad;
     public float guiScale = 1f;
-    public int count = 3;
-    public float randomPosition = 0.05f;
-    public bool greyScale = false;
+    //public bool colored = false;
 
-    private int countmax = 100;
-    private MeshRenderer[] renderers;
-    private Object[] texture_shapes;
+    private List<GameObject> objs;
+    private Object[] textures;
+    private Camera cam;
+
+    private GameObject obj;
+    private Vector3 startPosition;
+    private int texID = 0;
 
     void Start()
     {
-        texture_shapes = Resources.LoadAll("ShapeGen", typeof(Texture2D));
-        renderers = new MeshRenderer[countmax];
-        for(int i=0; i<countmax; i++)
-        {
-            GameObject newObj = Instantiate(quad);
-            renderers[i] = newObj.GetComponent<MeshRenderer>();
-        }
-        GenNewShape();
+        cam = Camera.main;
+        textures = Resources.LoadAll("WingsGen", typeof(Texture2D));
+        objs = new List<GameObject>();
     }
 
-    public void GenNewShape()
+    private Vector3 GetMousePosition()
     {
-        MaterialPropertyBlock props = new MaterialPropertyBlock();
-        for(int i=0; i<countmax; i++)
+        RaycastHit hit;
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        Vector3 pos = Vector3.zero;
+        if (Physics.Raycast(ray, out hit))
         {
-            if(i<count)
-            {
-                //MATERIAL
-
-                //Random grey color
-                if(greyScale)
-                {
-                    float grey = Random.Range(0.0f, 0.3f);
-                    props.SetColor("_BaseColor", new Color(grey, grey, grey));
-                }
-                else
-                {
-                    props.SetColor("_BaseColor", Color.black);
-                }
-
-                //Random texture
-                int tid = Random.Range(0,texture_shapes.Length-1);
-                props.SetTexture("_BaseMap",(Texture2D)texture_shapes[tid]);
-
-                //Random cutoff
-                float cutoff = Random.Range(0.1f, 1.0f);
-                props.SetFloat("_Cutoff",cutoff);
-
-                //Assign to MaterialPropertyBlock
-                renderers[i].SetPropertyBlock(props);
-                            
-                // TRANSFORM
-
-                //Random position
-                renderers[i].transform.localPosition = CommonTools.RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
-
-                //Random rotation
-                Vector3 rot = CommonTools.RandomV3(Vector3.zero, Vector3.one*360.0f);
-                renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
-
-                //Random scale
-                renderers[i].transform.localScale = CommonTools.RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
-
-                //Make sure Renderer is enabled
-                renderers[i].enabled = true;
-            }
-            else
-            {
-                renderers[i].enabled = false;
-            }
+            pos = hit.point;
         }
+        return pos;
+    }
+
+    public void OnMouseDown()
+    {
+        //Start position
+        startPosition = GetMousePosition();
+
+        //Make new object
+        Vector3 pos = startPosition;
+        pos.z = 0.001f * objs.Count;
+        obj = Instantiate(quad,pos,Quaternion.identity);
+        MeshRenderer ren = obj.GetComponentInChildren<MeshRenderer>();
+
+        //Material
+        MaterialPropertyBlock props = new MaterialPropertyBlock();
+        //props.SetColor("_BaseColor", colored? Color.white : Color.black );
+        props.SetTexture("_BaseMap",(Texture2D)textures[texID]);
+        ren.SetPropertyBlock(props);
+    }
+
+    public void OnMouseDrag()
+    {
+        Vector3 mousePos = GetMousePosition();
+        Debug.DrawLine(cam.transform.position,mousePos,Color.red);
+
+        //Scale base on distance
+        float dist = Vector3.Distance(startPosition,mousePos);
+        obj.transform.localScale = Vector3.one*dist;
+
+        //Rotation base on direction
+        float angle = AngleBetweenTwoPoints(startPosition,mousePos);
+        obj.transform.rotation = Quaternion.Euler(0,0,angle-90f);
+    }
+
+    float AngleBetweenTwoPoints(Vector3 a, Vector3 b) 
+    {
+    return Mathf.Atan2(a.y - b.y, a.x - b.x) * Mathf.Rad2Deg;
+    }
+
+    public void OnMouseUp()
+    {
+        objs.Add(obj);
+    }
+
+    public void Undo()
+    {
+        int id = objs.Count-1;
+        if(id >= 0)
+        {
+            Destroy(objs[id]);
+            objs.Remove(objs[id]);
+        }
+    }
+
+    public void Clear()
+    {
+        for(int i = 0; i < objs.Count; i++)
+        {
+            Destroy(objs[i]);
+        }
+        objs.Clear();
     }
 
     void OnGUI()
@@ -84,15 +102,15 @@ public class WingsGen : MonoBehaviour
         if(!CommonTools.renderGUI) return;
 
         //The box
-        float w = 400 * guiScale;
-        float h = 200 * guiScale;
+        float hTextureSlot = 80f;
+        float w = 200 * guiScale;
+        float h = (220 + hTextureSlot * textures.Length ) * guiScale;
         GUILayout.BeginArea(new Rect(5, 5, w, h), GUI.skin.box);
 
         //Styles
         GUI.skin.label.fontSize = Mathf.RoundToInt ( 16 * guiScale );
         GUI.skin.button.fontSize = Mathf.RoundToInt ( 16 * guiScale );
         GUI.skin.toggle.fontSize = Mathf.RoundToInt ( 16 * guiScale );
-        GUI.skin.horizontalSlider.fontSize = Mathf.RoundToInt ( 16 * guiScale );
         GUI.color = Color.white;
 
         //Title
@@ -104,19 +122,21 @@ public class WingsGen : MonoBehaviour
 
         //Settings
         GUILayout.BeginHorizontal();
-            GUILayout.Label( "Count     " );
-            count = Mathf.RoundToInt(GUILayout.HorizontalSlider(count, 3, countmax, GUILayout.Width(250 * guiScale)));
-            GUILayout.Label( ""+count );
+        if(GUILayout.Button("\n Undo \n",GUILayout.Height(50 * guiScale))) Undo();
+        if(GUILayout.Button("\n Clear \n",GUILayout.Height(50 * guiScale))) Clear();
         GUILayout.EndHorizontal();
-        GUILayout.BeginHorizontal();
-            GUILayout.Label( "Scattering" );
-            randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f, GUILayout.Width(250 * guiScale));
-            GUILayout.Label( ""+randomPosition.ToString("F3") );
-        GUILayout.EndHorizontal();
-            greyScale = GUILayout.Toggle(greyScale, " Greyscale");
+        if(GUILayout.RepeatButton("\n Wings Preview \n",GUILayout.Height(50 * guiScale))) mirror.mirrorMode = 1;
+        else mirror.mirrorMode = 0;
         GUILayout.Space(10);
-        if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
 
+        //List of textures below
+        GUILayout.Label( "Select feather:" );
+        for(int i = 0; i < textures.Length; i++)
+        {
+            if(GUILayout.Button((Texture2D)textures[i],GUILayout.Height(hTextureSlot * guiScale))) texID = i;
+        }
+        
+        //colored = GUILayout.Toggle(colored, " Colored");
 
         // End of box
         GUILayout.EndArea();
