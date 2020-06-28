@@ -6,8 +6,8 @@ Unity version : 2019.4+
 
 ## ShapeGen
 
-<img src="READMEImages/02.PNG" width="50%"><img src="READMEImages/07.jpg" width="50%">
-<img src="READMEImages/03.PNG" width="50%"><img src="READMEImages/04.PNG" width="50%">
+<img src="READMEImages/ShapeGen_01.gif" width="50%"><img src="READMEImages/02.PNG" width="50%">
+<img src="READMEImages/03.PNG" width="50%"><img src="READMEImages/07.jpg" width="50%">
 <img src="READMEImages/05.jpg" width="50%"><img src="READMEImages/06.jpg" width="50%">
 <img src="READMEImages/09.jpg" width="50%"><img src="READMEImages/10.jpg" width="50%">
 
