@@ -7,10 +7,10 @@ public class EnvGen : MonoBehaviour
     public GameObject quad;
     public float guiScale = 1f;
     public int count = 3;
-    private float randomPosition = 11f;
-    public bool greyScale = false;
+    //public bool greyScale = false;
     public int layers = 5;
 
+    private float randomPosition = 11f;
     private int countmax = 100;
     private MeshRenderer[] renderers;
 
@@ -64,6 +64,7 @@ public class EnvGen : MonoBehaviour
                 //LAYER
 
                 int layer = Random.Range(1, layers);
+                float layerFactor = (float)layer/layers;
 
                 //MATERIAL
 
@@ -71,13 +72,14 @@ public class EnvGen : MonoBehaviour
                 float grey = 1f;
                 //if(greyScale)
                 //{
-                    grey = Random.Range(0.7f, 1.0f);
+                    grey = Random.Range(0.9f, 1.0f);
                 //}
                 // else
                 // {
                 //     grey = 0f;
                 // }
-                grey *= (float)layer/layers; //apply layer color
+                grey *= layerFactor; //apply layer color
+                grey *= 0.3f; //make it darker
                 props.SetColor("_BaseColor", new Color(grey, grey, grey));
 
                 //Random texture
@@ -97,16 +99,20 @@ public class EnvGen : MonoBehaviour
                 //Random position
                 var pos = Vector3.zero;
                 pos.x = Random.Range(-randomPosition, randomPosition);
-                pos.y = 0;
-                pos.z = (float)layer/layers * 2f;
+                pos.y = layerFactor * layers;
+                pos.z = layerFactor * 2f;
                 renderers[i].transform.localPosition = pos;
 
-                //Random rotation
-                // Vector3 rot = CommonTools.RandomV3(Vector3.zero, Vector3.one*360.0f);
-                // renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
+                //Random flip X
+                int flipX = Random.Range(0, 2);
+                //Vector3 rot = CommonTools.RandomV3(Vector3.zero, Vector3.one*360.0f);
+                renderers[i].transform.localRotation = Quaternion.Euler(0, flipX * 180f, 0);
 
                 //Random scale
-                renderers[i].transform.localScale = CommonTools.RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
+                var sca = CommonTools.RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
+                sca *= layerFactor * layers; //closer the larger
+                renderers[i].transform.localScale = sca;
+
 
                 //Make sure Renderer is enabled
                 renderers[i].enabled = true;
@@ -157,7 +163,7 @@ public class EnvGen : MonoBehaviour
         //     randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f, GUILayout.Width(250 * guiScale));
         //     GUILayout.Label( ""+randomPosition.ToString("F3") );
         // GUILayout.EndHorizontal();
-            greyScale = GUILayout.Toggle(greyScale, " Greyscale");
+            //greyScale = GUILayout.Toggle(greyScale, " Greyscale");
         GUILayout.Space(10);
         if(GUILayout.Button("\n Generate \n",GUILayout.Height(50 * guiScale))) GenNewShape();
 
