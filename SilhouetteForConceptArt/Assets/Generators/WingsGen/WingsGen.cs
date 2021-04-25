@@ -78,7 +78,7 @@ public class WingsGen : MonoBehaviour
             pos.x -= 10.23f;
             pos.y *= 2f;
         }
-        Debug.Log(pos.y);
+
         return pos;
     }
 
