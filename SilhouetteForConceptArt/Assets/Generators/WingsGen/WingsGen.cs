@@ -39,7 +39,7 @@ public class WingsGen : MonoBehaviour
     public void OnMouseDown()
     {
         //Start position
-        startPosition = GetMousePosition();
+        startPosition = mirrorComensationPos();
 
         //Make new object
         Vector3 pos = startPosition;
@@ -56,7 +56,7 @@ public class WingsGen : MonoBehaviour
 
     public void OnMouseDrag()
     {
-        Vector3 mousePos = GetMousePosition();
+        Vector3 mousePos = mirrorComensationPos();
         Debug.DrawLine(cam.transform.position,mousePos,Color.red);
 
         //Scale base on distance
@@ -66,6 +66,20 @@ public class WingsGen : MonoBehaviour
         //Rotation base on direction
         float angle = AngleBetweenTwoPoints(startPosition,mousePos);
         obj.transform.rotation = Quaternion.Euler(0,0,angle-90f);
+    }
+
+    private Vector3 mirrorComensationPos()
+    {
+        Vector3 pos = GetMousePosition();
+        if(mirror.mirrorMode == 1)
+        {
+            pos.x = Mathf.Abs(pos.x);
+            pos.x *= 2f;
+            pos.x -= 10.23f;
+            pos.y *= 2f;
+        }
+        Debug.Log(pos.y);
+        return pos;
     }
 
     float AngleBetweenTwoPoints(Vector3 a, Vector3 b) 
@@ -125,8 +139,9 @@ public class WingsGen : MonoBehaviour
         if(GUILayout.Button("\n Undo \n",GUILayout.Height(50 * guiScale))) Undo();
         if(GUILayout.Button("\n Clear \n",GUILayout.Height(50 * guiScale))) Clear();
         GUILayout.EndHorizontal();
-        if(GUILayout.RepeatButton("\n Wings Preview \n",GUILayout.Height(50 * guiScale))) mirror.mirrorMode = 1;
-        else mirror.mirrorMode = 0;
+        if(GUILayout.Button("\n Toggle Mirror \n",GUILayout.Height(50 * guiScale))) mirror.mirrorMode = mirror.mirrorMode==0? 1 : 0;
+        //if(GUILayout.RepeatButton("\n Wings Preview \n",GUILayout.Height(50 * guiScale))) mirror.mirrorMode = 1;
+        //else mirror.mirrorMode = 0;
         GUILayout.Space(10);
 
         //List of textures below

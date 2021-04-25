@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class ShapeGen : MonoBehaviour
 {
+    public string genName = "ShapeGen";
     public GameObject quad;
     public float guiScale = 1f;
     public int count = 3;
     public float randomPosition = 0.05f;
+    public Vector2 randomPosRange = new Vector2(0f,0.1f);
+    public Vector2 randomScaRange = new Vector2(0.5f,5.5f);
+    public Vector2 randomGreyRange = new Vector2(0.0f,0.3f);
     public bool greyScale = false;
+    public bool posCenter = true;
     public Mirror mirror;
+    public string textureFolder = "ShapeGen";
 
     private int countmax = 100;
     private MeshRenderer[] renderers;
@@ -17,7 +23,8 @@ public class ShapeGen : MonoBehaviour
 
     void Start()
     {
-        texture_shapes = Resources.LoadAll("ShapeGen", typeof(Texture2D));
+        texture_shapes = Resources.LoadAll(textureFolder, typeof(Texture2D));
+        Debug.Log(textureFolder + " has "+ texture_shapes.Length + " textures");
         renderers = new MeshRenderer[countmax];
         for(int i=0; i<countmax; i++)
         {
@@ -39,7 +46,7 @@ public class ShapeGen : MonoBehaviour
                 //Random grey color
                 if(greyScale)
                 {
-                    float grey = Random.Range(0.0f, 0.3f);
+                    float grey = Random.Range(randomGreyRange.x, randomGreyRange.y);
                     props.SetColor("_BaseColor", new Color(grey, grey, grey));
                 }
                 else
@@ -48,7 +55,7 @@ public class ShapeGen : MonoBehaviour
                 }
 
                 //Random texture
-                int tid = Random.Range(0,texture_shapes.Length-1);
+                int tid = Random.Range(0,texture_shapes.Length);
                 props.SetTexture("_BaseMap",(Texture2D)texture_shapes[tid]);
 
                 //Random cutoff
@@ -61,14 +68,22 @@ public class ShapeGen : MonoBehaviour
                 // TRANSFORM
 
                 //Random position
-                renderers[i].transform.localPosition = CommonTools.RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
+                if(posCenter)
+                {
+                    renderers[i].transform.localPosition = CommonTools.RandomV3(Vector3.one*randomPosition*-i, Vector3.one*randomPosition*i);
+                }
+                else
+                {
+                    renderers[i].transform.localPosition = CommonTools.RandomV3(-Vector3.one*randomPosition, Vector3.one*randomPosition);
+                }
+                
 
                 //Random rotation
                 Vector3 rot = CommonTools.RandomV3(Vector3.zero, Vector3.one*360.0f);
                 renderers[i].transform.localRotation = Quaternion.Euler(rot.x, rot.y, rot.z);
 
                 //Random scale
-                renderers[i].transform.localScale = CommonTools.RandomV3(Vector3.one*0.5f, Vector3.one*5.5f);
+                renderers[i].transform.localScale = CommonTools.RandomV3(Vector3.one*randomScaRange.x, Vector3.one*randomScaRange.y);
 
                 //Make sure Renderer is enabled
                 renderers[i].enabled = true;
@@ -100,7 +115,7 @@ public class ShapeGen : MonoBehaviour
         GUIStyle titleStyle = new GUIStyle("label");
         titleStyle.fontSize = Mathf.RoundToInt(GUI.skin.label.fontSize*1.2f);
         titleStyle.fontStyle = FontStyle.Bold;
-        GUILayout.Label( "ShapeGen",titleStyle );
+        GUILayout.Label( genName,titleStyle );
         GUILayout.Space(20);
 
         //Settings
@@ -111,7 +126,7 @@ public class ShapeGen : MonoBehaviour
         GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
             GUILayout.Label( "Scattering" );
-            randomPosition = GUILayout.HorizontalSlider(randomPosition, 0f, 0.1f, GUILayout.Width(250 * guiScale));
+            randomPosition = GUILayout.HorizontalSlider(randomPosition, randomPosRange.x, randomPosRange.y, GUILayout.Width(250 * guiScale));
             GUILayout.Label( ""+randomPosition.ToString("F3") );
         GUILayout.EndHorizontal();
             greyScale = GUILayout.Toggle(greyScale, " Greyscale");

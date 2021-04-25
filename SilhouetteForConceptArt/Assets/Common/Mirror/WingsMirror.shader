@@ -39,6 +39,7 @@
 
             sampler2D _MainTex;
             int _MirrorMode;
+            uniform float4 _MainTex_TexelSize;
 
             fixed4 frag (v2f i) : SV_Target
             {
@@ -54,6 +55,14 @@
                 }
 
                 fixed4 col = tex2D(_MainTex, uv);
+
+                if(_MirrorMode == 1)
+                {
+                    float f = step(_MainTex_TexelSize.y,uv.y);
+                    float f2 = step(uv.y,1-_MainTex_TexelSize.y);
+                    col = lerp( 1, col, f*f2  );
+                }
+
                 return col;
             }
             ENDCG
